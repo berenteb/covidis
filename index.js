@@ -60,7 +60,7 @@ function createRequest(country, channel) {
         var month = d.getMonth()+1;
         var monthString = month<10?"0"+month:month+"";
         var host = "koronavirus.gov.hu"
-        var path = `/sites/default/files/terkep_${monthString}${dayString}.jpg`;
+        var path = `/sites/default/files/terkep${monthString}${dayString}.jpg`;
         var imgUrl = `http://${host}${path}`;
         try{
             attachment = new Discord.MessageAttachment(imgUrl);
