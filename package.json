@@ -3,7 +3,7 @@
     "author": {
         "name": "Berente Bálint"
     },
-    "version": "3.0.0",
+    "version": "4.0.1",
     "devDependencies": {
         "nodemon": "^2.0.2"
     },

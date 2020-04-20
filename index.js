@@ -52,9 +52,9 @@ function createRequest(country, channel) {
     var recovered = 0;
     var serious_critical = 0;
     var total_cases_per_million = 0;
-    var hatosagi_karanten = "Nincs adatom erről";
-    var mintavetel = "Nincs adatom erről";
-    var attachment = null;
+    var hatosagi_karanten = "Ez az adat valahová eltűnt";
+    var mintavetel = "Ezt az adatot elvitte a cica";
+    var image = null;
     var attachment_status = "";
 
     if (country === "HUNGARY") {
@@ -67,20 +67,22 @@ function createRequest(country, channel) {
         var path = `/sites/default/files/terkep${monthString}${dayString}.jpg`;
         var imgUrl = `http://${host}${path}`;
         try{
-            attachment = new Discord.MessageAttachment(imgUrl);
+            image = new Discord.MessageAttachment(imgUrl);
             console.log("Térkép letöltve");
         }catch(error){
-            console.log(url+" nem található.");
+            console.log(imgUrl+" nem található.");
             attachment_status = "\nItt egy térképnek kellene megjelennie, de azzal még titkolózik a kormány.\nPróbáld újra később!"
             console.log(error);
         }
         var req = https.request({hostname: host},(res)=>{
             res.on('data',(d)=>{
                 var $ = cheerio.load(d);
-                hatosagi_karanten = $('.views-row-4').find(".number").text()===""?hatosagi_karanten:$('.views-row-4').find(".number").text();
-                hatosagi_karanten = hatosagi_karanten.replace(" ",",");
-                mintavetel = $('.views-row-5').find(".number").text()===""?mintavetel:$('.views-row-5').find(".number").text();
-                mintavetel = mintavetel.replace(" ",",");
+                if ($('.views-row-4').find(".number").text()!=="") {
+                    hatosagi_karanten = $('.views-row-4').find(".number").text().replace(" ",",");
+                }
+                if ($('.views-row-5').find(".number").text()!=="") {
+                    mintavetel = $('.views-row-5').find(".number").text().replace(" ",",");
+                }
             })
         });
         req.on('error',error=>{console.log(host+" nem érhető el.")})
@@ -119,7 +121,7 @@ function createRequest(country, channel) {
         } else {
             console.log("Nincs találat! Információ elküldve");
         }
-        channel.send(message, attachment);
+        channel.send(message, image);
     });
 }
 
