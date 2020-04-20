@@ -2,6 +2,8 @@
 const Discord = require('discord.js');
 const unirest = require('unirest');
 const config = require('./config.json');
+const cheerio = require('cheerio');
+const https = require('https');
 // Create an instance of a Discord client
 const client = new Discord.Client();
 
@@ -50,6 +52,8 @@ function createRequest(country, channel) {
     var recovered = 0;
     var serious_critical = 0;
     var total_cases_per_million = 0;
+    var hatosagi_karanten = "Nincs adatom erről";
+    var mintavetel = "Nincs adatom erről";
     var attachment = null;
     var attachment_status = "";
 
@@ -69,7 +73,18 @@ function createRequest(country, channel) {
             console.log(url+" nem található.");
             attachment_status = "\nItt egy térképnek kellene megjelennie, de azzal még titkolózik a kormány.\nPróbáld újra később!"
             console.log(error);
-        }   
+        }
+        var req = https.request({hostname: host},(res)=>{
+            res.on('data',(d)=>{
+                var $ = cheerio.load(d);
+                hatosagi_karanten = $('.views-row-4').find(".number").text()===""?hatosagi_karanten:$('.views-row-4').find(".number").text();
+                hatosagi_karanten = hatosagi_karanten.replace(" ",",");
+                mintavetel = $('.views-row-5').find(".number").text()===""?mintavetel:$('.views-row-5').find(".number").text();
+                mintavetel = mintavetel.replace(" ",",");
+            })
+        });
+        req.on('error',error=>{console.log(host+" nem érhető el.")})
+        req.end();
     }
 
     var req = unirest("GET", "https://coronavirus-monitor.p.rapidapi.com/coronavirus/cases_by_country.php");
@@ -98,7 +113,9 @@ function createRequest(country, channel) {
         var message = "Nincs adatom erről 😓";
         if (countryFound) {
             console.log("Sikeres! Válasz elküldve");
-            message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}${attachment_status}`;
+            if (country==="HUNGARY") {
+                message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}\n🏥 Hatósági házi karanténban: ${hatosagi_karanten}\n🧪 Mintavételek száma: ${mintavetel}${attachment_status}`;
+            }else message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}${attachment_status}`;
         } else {
             console.log("Nincs találat! Információ elküldve");
         }
