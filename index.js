@@ -55,7 +55,7 @@ function createRequest(country, channel) {
     var hatosagi_karanten = "Ez az adat valahová eltűnt";
     var mintavetel = "Ezt az adatot elvitte a cica";
     var image = null;
-    var attachment_status = "";
+    var attachment_status = "Itt egy térképnek kellene megjelennie, de azzal még titkolózik a kormány.\nPróbáld újra később!";
 
     if (country === "HUNGARY") {
         var d = new Date();
@@ -64,24 +64,30 @@ function createRequest(country, channel) {
         var month = d.getMonth()+1;
         var monthString = month<10?"0"+month:month+"";
         var host = "koronavirus.gov.hu"
-        var path = `/sites/default/files/terkep${monthString}${dayString}.jpg`;
-        var imgUrl = `http://${host}${path}`;
-        try{
-            image = new Discord.MessageAttachment(imgUrl);
-            console.log("Térkép letöltve");
-        }catch(error){
-            console.log(imgUrl+" nem található.");
-            attachment_status = "\nItt egy térképnek kellene megjelennie, de azzal még titkolózik a kormány.\nPróbáld újra később!"
-            console.log(error);
-        }
+        var imgUrl = "";
         var req = https.request({hostname: host},(res)=>{
             res.on('data',(d)=>{
                 var $ = cheerio.load(d);
-                if ($('.views-row-4').find(".number").text()!=="") {
-                    hatosagi_karanten = $('.views-row-4').find(".number").text().replace(" ",",");
+                if ($('#api-karantenban').text()!=="") {
+                    hatosagi_karanten = $('#api-karantenban').text().replace(" ",",");
                 }
-                if ($('.views-row-5').find(".number").text()!=="") {
-                    mintavetel = $('.views-row-5').find(".number").text().replace(" ",",");
+                if ($('#api-mintavetel').text()!=="") {
+                    mintavetel = $('#api-mintavetel').text().replace(" ",",");
+                }
+                if ($('.terkepek').find('img').attr('src')) {
+                    imgUrl = $('.terkepek').find('img').attr('src');
+                }
+                if(imgUrl!==""){
+                    try{
+                        console.log(imgUrl)
+                        image = new Discord.MessageAttachment(imgUrl);
+                        console.log("Térkép letöltve");
+                        attachment_status = "";
+                    }catch(error){
+                        console.log("Kép nem található.");
+                        attachment_status = "\nItt egy térképnek kellene megjelennie, de azzal még titkolózik a kormány.\nPróbáld újra később!"
+                        console.log(error);
+                    }
                 }
             })
         });
