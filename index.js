@@ -30,7 +30,7 @@ client.on('message', message => {
                     break;
             }
         }
-    } else if (message.content === "!info") {
+    } else if (message.content === "!covidis") {
         message.react('❤');
         message.channel.send("Hello!\nCOVidis bot vagyok és felcsatlakoztam. Ha tetszik, ha nem...\nOrszágokról küldök koronavírus információkat.\n\nHasználat:\n\t'!covid:<ország>'\n\t'!mask'");
     } else if (message.content === "!mask") {
@@ -55,14 +55,14 @@ function createRequest(country, channel) {
     var hatosagi_karanten = "Ez az adat valahová eltűnt";
     var mintavetel = "Ezt az adatot elvitte a cica";
     var image = null;
-    var attachment_status = "Itt egy térképnek kellene megjelennie, de azzal még titkolózik a kormány.\nPróbáld újra később!";
+    var attachment_status = "\nItt egy térképnek kellene megjelennie, de azzal még titkolózik a kormány.\nPróbáld újra később!";
 
     if (country === "HUNGARY") {
         var d = new Date();
         var day = d.getDate();
-        var dayString = day<10?"0"+day:day+"";
+        //var dayString = day<10?"0"+day:day+"";
         var month = d.getMonth()+1;
-        var monthString = month<10?"0"+month:month+"";
+        //var monthString = month<10?"0"+month:month+"";
         var host = "koronavirus.gov.hu"
         var imgUrl = "";
         var req = https.request({hostname: host},(res)=>{
@@ -123,7 +123,7 @@ function createRequest(country, channel) {
             console.log("Sikeres! Válasz elküldve");
             if (country==="HUNGARY") {
                 message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}\n🏥 Hatósági házi karanténban: ${hatosagi_karanten}\n🧪 Mintavételek száma: ${mintavetel}${attachment_status}`;
-            }else message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}${attachment_status}`;
+            }else message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}`;
         } else {
             console.log("Nincs találat! Információ elküldve");
         }
@@ -168,4 +168,3 @@ async function getMask(channel) {
     channel.send(`Itt egy tip:`, attachment);
     console.log("Sikeres! Válasz elküldve");
 }
-
