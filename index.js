@@ -28,10 +28,11 @@ client.on('message', message => {
             if (country === "WORLD") {
                 sendMessageWorld(message.channel);
             } else sendMessage(country, message.channel);
+            console.log("Válasz elküldve");
         }
     } else if (message.content === "!covidis") {
         message.react('❤');
-        message.channel.send("Hello!\nCOVidis bot vagyok és felcsatlakoztam. Ha tetszik, ha nem...\nOrszágokról küldök koronavírus információkat.\n\nHasználat:\n\t'!covid:<ország>'\n\t'!mask'");
+        message.channel.send("Hello!\nCOVidis bot vagyok\nOrszágokról küldök koronavírus információkat.\nHasználat:\n\t'!covid:<ország angol neve>'\n\t'!mask'");
     } else if (message.content === "!mask") {
         message.react('❤');
         getMask(message.channel);
@@ -156,7 +157,6 @@ async function getData(country) {
             if(result.imgUrl)attachment_status = "";
 
             if (countryFound) {
-                console.log("Sikeres! Válasz elküldve");
                 if (country === "HUNGARY") {
                     result.message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}\n🏥 Hatósági házi karanténban: ${hatosagi_karanten}\n🧪 Mintavételek száma: ${mintavetel}${attachment_status}`;
                 } else result.message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}`;
@@ -188,6 +188,7 @@ var sendWebhook = function () {
                 .setImage(data.imgUrl);
                 
         Hook.send(msg);
+        console.log("Webhook sent")
     }).catch(err => {
         console.log(err);
     })
