@@ -176,7 +176,7 @@ async function getData(country) {
 }
 
 var sendWebhook = function () {
-    console.log("Automatizált WebHook");
+    console.log("WebHook küldése");
     getData("HUNGARY").then(data => {
         const Hook = new webhook.Webhook(config.webhook);
         var d = new Date();
