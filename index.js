@@ -158,8 +158,8 @@ async function getData(country) {
 
             if (countryFound) {
                 if (country === "HUNGARY") {
-                    result.message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}\n🏥 Hatósági házi karanténban: ${hatosagi_karanten}\n🧪 Mintavételek száma: ${mintavetel}${attachment_status}`;
-                } else result.message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (mai nap: +${new_cases})\n💀 Halál: ${deaths} (mai nap: +${new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}`;
+                    result.message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (${new_cases==="0"?"Nincs új adat":"mai nap +"+new_cases})\n💀 Halál: ${deaths} (${new_deaths==="0"?"Nincs új adat":"mai nap +"+new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}\n🏥 Hatósági házi karanténban: ${hatosagi_karanten}\n🧪 Mintavételek száma: ${mintavetel}${attachment_status}`;
+                } else result.message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n📄 Esetek: ${cases} (${new_cases==="0"?"Nincs új adat":"mai nap +"+new_cases})\n💀 Halál: ${deaths} (${new_deaths==="0"?"Nincs új adat":"mai nap +"+new_deaths})\n🆘 Súlyos beteg: ${serious_critical}\n💚 Meggyógyult: ${recovered}\n🔢 1 Millió főre eső eset: ${total_cases_per_million}`;
                 resolve(result);
             } else {
                 console.log("Nincs találat! Információ elküldve");
