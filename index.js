@@ -183,7 +183,7 @@ var sendWebhook = function () {
         const msg = new webhook.MessageBuilder()
                 .setName("COVidis")
                 .setColor("#7589DA")
-                .setTitle(`Koronavírus statisztikák ${d.getFullYear()}.${d.getMonth()+1<10?"0"+(d.getMonth()+1):d.getMonth()+1}.${d.getDate()+1<10?"0"+(d.getDate()+1):d.getDate()+1}.`)
+                .setTitle(`Koronavírus statisztikák ${d.getFullYear()}.${d.getMonth()+1<10?"0"+(d.getMonth()+1):d.getMonth()+1}.${d.getDate()<10?"0"+(d.getDate()):d.getDate()}.`)
                 .setDescription(data.message)
                 .setImage(data.imgUrl);
                 
