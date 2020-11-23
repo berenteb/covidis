@@ -113,5 +113,6 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node
 
-config.json
-config_live
+**config.json
+**config_live
+.DS_Store

@@ -6,28 +6,10 @@ const cheerio = require('cheerio');
 const https = require('https');
 const webhook = require("webhook-discord")
 const Schedule = require('node-schedule');
+const { parse } = require('path');
 
-var old_hun_data = {
-    fertozott_pest: 0,
-    fertozott_videk: 0,
-    gyogyult_pest: 0,
-    gyogyult_videk: 0,
-    elhunyt_pest: 0,
-    elhunyt_videk: 0,
-    hatosagi_karanten: 0,
-    mintavetel: 0
-}
-
-var current_hun_data = {
-    fertozott_pest: 0,
-    fertozott_videk: 0,
-    gyogyult_pest: 0,
-    gyogyult_videk: 0,
-    elhunyt_pest: 0,
-    elhunyt_videk: 0,
-    hatosagi_karanten: 0,
-    mintavetel: 0
-}
+var old_hun_data;
+var current_hun_data;
 
 // Create an instance of a Discord client
 const client = new Discord.Client();
@@ -44,16 +26,11 @@ client.on('message', message => {
             message.react('❤');
             var country = messageSplit[1];
             if (country !== null || country !== "") {
-                country = country.trim().toLowerCase();
-                var country_split = country.split(" ");
-                country = "";
-                country_split.forEach(element => {
-                    country = country === "" ? element.charAt(0).toUpperCase() + element.slice(1) : country + " " + element.charAt(0).toUpperCase() + element.slice(1);
-                });
+                country = formatCountryName(country);
+                console.log(country + " keresése");
+                sendMessage(country, message.channel);
+                console.log("Válasz elküldve");
             }
-            console.log(country + " keresése");
-            sendMessage(country, message.channel);
-            console.log("Válasz elküldve");
         }
     } else if (message.content === "!covidis") {
         message.react('❤');
@@ -70,7 +47,7 @@ client.login(config.token);
 function sendMessage(country, channel) {
     getData(country).then(data => {
         if (data.imgUrl && data.imgUrl !== "") {
-            console.log(data.imgUrl)
+            console.log(data.imgUrl ? "Térkép megtalálva" : "Térkép nem lett megtalálva")
             var image = new Discord.MessageAttachment(data.imgUrl);
             channel.send(data.message, image);
         } else channel.send(data.message);
@@ -90,7 +67,7 @@ function sendMessageWorld(channel) {
 
     req.headers({
         "x-rapidapi-host": "covid-19-coronavirus-statistics.p.rapidapi.com",
-        "x-rapidapi-key": "ba898b1cf6msh168261419425c3cp171f77jsn5d7fc1872358",
+        "x-rapidapi-key": config.rapid_api_key,
         "useQueryString": true
     });
 
@@ -120,26 +97,20 @@ async function getData(country) {
         message: "Jajj, tervezőm!"
     };
     await new Promise((resolve, reject) => {
-        
+
         if (country === "Hungary") {
             var hun_data = {
-                fertozott_pest: 0,
-                fertozott_videk: 0,
-                gyogyult_pest: 0,
-                gyogyult_videk: 0,
-                elhunyt_pest: 0,
-                elhunyt_videk: 0,
-                hatosagi_karanten: 0,
+                fertozott: 0,
+                elhunyt: 0,
+                gyogyult: 0,
+                karanten: 0,
                 mintavetel: 0
             }
             var statistics = {
-                fertozott_pest_new: "",
-                fertozott_videk_new: "",
-                gyogyult_pest_new: "",
-                gyogyult_videk_new: "",
-                elhunyt_pest_new: "",
-                elhunyt_videk_new: "",
-                hatosagi_karanten_new: "",
+                fertozott_new: "",
+                elhunyt_new: "",
+                gyogyult_new: "",
+                karanten_new: "",
                 mintavetel_new: ""
             }
             var attachment_status = "\n🗺 A térképet nem tudtam megszerezni.";
@@ -148,50 +119,49 @@ async function getData(country) {
                 res.on('data', (d) => {
                     var $ = cheerio.load(d);
                     if ($('#api-fertozott-pest').text() !== "") {
-                        parseInt(hun_data.fertozott_pest = $('#api-fertozott-pest').text().replace(" ", ""))
+                        hun_data.fertozott += getNum($('#api-fertozott-pest').text());
                     }
                     if ($('#api-fertozott-videk').text() !== "") {
-                        parseInt(hun_data.fertozott_videk = $('#api-fertozott-videk').text().replace(" ", ""))
+                        hun_data.fertozott += getNum($('#api-fertozott-videk').text());
                     }
                     if ($('#api-gyogyult-pest').text() !== "") {
-                        parseInt(hun_data.gyogyult_pest = $('#api-gyogyult-pest').text().replace(" ", ""))
+                        hun_data.gyogyult += getNum($('#api-gyogyult-pest').text());
                     }
                     if ($('#api-gyogyult-videk').text() !== "") {
-                        parseInt(hun_data.gyogyult_videk = $('#api-gyogyult-videk').text().replace(" ", ""))
+                        hun_data.gyogyult += getNum($('#api-gyogyult-videk').text());
                     }
                     if ($('#api-elhunyt-pest').text() !== "") {
-                        parseInt(hun_data.elhunyt_pest = $('#api-elhunyt-pest').text().replace(" ", ""))
+                        hun_data.elhunyt += getNum($('#api-elhunyt-pest').text());
                     }
                     if ($('#api-elhunyt-videk').text() !== "") {
-                        parseInt(hun_data.elhunyt_videk = $('#api-elhunyt-videk').text().replace(" ", ""))
+                        hun_data.elhunyt += getNum($('#api-elhunyt-videk').text())
                     }
                     if ($('#api-karantenban').text() !== "") {
-                        parseInt(hun_data.hatosagi_karanten = $('#api-karantenban').text().replace(" ", ""))
+                        hun_data.karanten = getNum($('#api-karantenban').text())
                     }
                     if ($('#api-mintavetel').text() !== "") {
-                        parseInt(hun_data.mintavetel = $('#api-mintavetel').text().replace(" ", ""));
+                        hun_data.mintavetel = getNum($('#api-mintavetel').text());
                     }
                     if ($('.terkepek').find('img').attr('src')) {
                         result.imgUrl = $('.terkepek').find('img').attr('src');
                     }
-                    if(hun_data!==current_hun_data){
+                });
+                res.on('end', () => {
+                    hun_data.fertozott += hun_data.gyogyult + hun_data.elhunyt;
+                    if(hun_data !== current_hun_data){
                         old_hun_data = current_hun_data;
                         current_hun_data = hun_data;
                     }
-                    if(old_hun_data.fertozott_pest!==0){
-                        statistics.fertozott_pest_new = ` (+${current_hun_data.fertozott_pest - old_hun_data.fertozott_pest})`
-                        statistics.fertozott_videk_new = ` (+${current_hun_data.fertozott_videk - old_hun_data.fertozott_videk})`
-                        statistics.gyogyult_pest_new = ` (+${current_hun_data.gyogyult_pest - old_hun_data.gyogyult_pest})`
-                        statistics.gyogyult_videk_new = ` (+${current_hun_data.gyogyult_videk - old_hun_data.gyogyult_videk})`
-                        statistics.elhunyt_pest_new = ` (+${current_hun_data.elhunyt_pest - old_hun_data.elhunyt_pest})`
-                        statistics.elhunyt_videk_new = ` (+${current_hun_data.elhunyt_videk - old_hun_data.elhunyt_videk})`
-                        statistics.hatosagi_karanten_new = ` (${current_hun_data.hatosagi_karanten - old_hun_data.hatosagi_karanten < 0 ? "" : "+" + (current_hun_data.hatosagi_karanten - old_hun_data.hatosagi_karanten)})`
-                        statistics.mintavetel_new = ` (+${current_hun_data.mintavetel - old_hun_data.mintavetel})`
+                    if (old_hun_data != undefined) {
+                        statistics.fertozott_new = ` (+${numberWithCommas(current_hun_data.fertozott - old_hun_data.fertozott)})`
+                        statistics.elhunyt_new = ` (+${numberWithCommas(current_hun_data.elhunyt - old_hun_data.elhunyt)})`
+                        statistics.gyogyult_new = ` (+${numberWithCommas(current_hun_data.gyogyult - old_hun_data.gyogyult)})`
+                        var karanten_diff = current_hun_data.karanten - old_hun_data.karanten;
+                        statistics.karanten_new = ` (${(karanten_diff < 0 ? "-" : "+") + numberWithCommas(karanten_diff)})`
+                        statistics.mintavetel_new = ` (+${numberWithCommas(current_hun_data.mintavetel - old_hun_data.mintavetel)})`
                     }
-                    result.message = `🇭🇺 ${country} jelenlegi koronavírus helyzete:\n\n🦠 Aktív esetek (Budapest/Vidék): ${numberWithCommas(hun_data.fertozott_pest)}${numberWithCommas(statistics.fertozott_pest_new)} / ${numberWithCommas(hun_data.fertozott_videk)}${numberWithCommas(statistics.fertozott_videk_new)}\n💀 Összes haláleset (Budapest/Vidék): ${numberWithCommas(hun_data.elhunyt_pest)}${numberWithCommas(statistics.elhunyt_pest_new)} / ${numberWithCommas(hun_data.elhunyt_videk)}${numberWithCommas(statistics.elhunyt_videk_new)}\n💚 Meggyógyult (Budapest/Vidék): ${numberWithCommas(hun_data.gyogyult_pest)}${numberWithCommas(statistics.gyogyult_pest_new)} / ${numberWithCommas(hun_data.gyogyult_videk)}${numberWithCommas(statistics.gyogyult_videk_new)}\n🏥 Hatósági házi karanténban: ${numberWithCommas(hun_data.hatosagi_karanten)} ${numberWithCommas(statistics.hatosagi_karanten_new)}\n🧪 Mintavételek száma: ${numberWithCommas(hun_data.mintavetel)}${numberWithCommas(statistics.mintavetel_new)}${attachment_status}`;
                     if (result.imgUrl) attachment_status = "";
-                });
-                res.on('end',()=>{
+                    result.message = `🇭🇺 Magyarország jelenlegi koronavírus helyzete:\n\n🦠 Esetek: ${numberWithCommas(hun_data.fertozott)} ${statistics.fertozott_new} \n💀 Halálesetek: ${numberWithCommas(hun_data.elhunyt)} ${statistics.elhunyt_new}\n💚 Meggyógyult: ${numberWithCommas(hun_data.gyogyult)} ${statistics.gyogyult_new}\n🏥 Hatósági házi karanténban: ${numberWithCommas(hun_data.karanten)} ${statistics.karanten_new}\n🧪 Mintavételek száma: ${numberWithCommas(hun_data.mintavetel)}${statistics.mintavetel_new}${attachment_status}`;
                     resolve(result);
                 });
             });
@@ -201,7 +171,7 @@ async function getData(country) {
             var cases = 0;
             var deaths = 0;
             var recovered = 0;
-            var req = unirest("GET", "https://covid-19-coronavirus-statistics.p.rapidapi.com/v1/stats");
+            var req = unirest("GET", "https://covid-19-coronavirus-statistics.p.rapidapi.com/v1/total");
 
             req.query({
                 "country": country
@@ -209,35 +179,31 @@ async function getData(country) {
 
             req.headers({
                 "x-rapidapi-host": "covid-19-coronavirus-statistics.p.rapidapi.com",
-                "x-rapidapi-key": "ba898b1cf6msh168261419425c3cp171f77jsn5d7fc1872358",
+                "x-rapidapi-key": config.rapid_api_key,
                 "useQueryString": true
             });
 
             req.end(function (res) {
-                var stat = JSON.parse(res.raw_body).data.covid19Stats;
+                var body = JSON.parse(res.raw_body);
                 var countryFound = false;
-                if(Array.isArray(stat)){
-                    stat.forEach((field)=>{
-                        if (field.country === country) {
-                            countryFound = true;
-                            cases += field.confirmed;
-                            deaths += field.deaths;
-                            recovered += field.recovered;
-                        }
-                    });
-                }else{
-                    console.log("Rossz formátumú válasz hiba");
+                if (body.message === "OK") {
+                    countryFound = true;
+                    cases = body.data.confirmed;
+                    deaths = body.data.deaths;
+                    recovered = body.data.recovered;
+                } else {
+                    console.log("Message != OK");
                 }
-                if(countryFound){
-                    result.message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n🦠 Esetek: ${numberWithCommas(cases)}\n💀 Halál: ${numberWithCommas(deaths)}\n💚 Meggyógyult: ${numberWithCommas(recovered)}`;
-                }else{
-                    result.message = "Sajnos nem találtam ilyen országot. (A szóközzel rendelkező országnevek jelenleg nem támogatottak)"
+                if (countryFound) {
+                    result.message = `🌍 ${country} jelenlegi koronavírus helyzete:\n\n🦠 Esetek: ${numberWithCommas(cases)}\n💀 Halálesetek: ${numberWithCommas(deaths)}\n💚 Meggyógyult: ${numberWithCommas(recovered)}`;
+                } else {
+                    result.message = "⚡️ Sajnos valamilyen hibába ütköztem. (Az is lehet, hogy nem találtam ilyen országot.)"
                 }
                 resolve(result);
             });
-            
+
         }
-        
+
     }).then((res) => {
         result = res;
     }).catch((rej) => {
@@ -263,11 +229,50 @@ var sendWebhook = function () {
     }).catch(err => {
         console.log(err);
     })
-
 }
 
 function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    var x_str = x.toString();
+    var new_str = "";
+    for(let i = 1; i <= x_str.length; i++){
+        new_str = x_str.charAt(x_str.length - i) + new_str;
+        if(i % 3 === 0 && i != x_str.length){
+            new_str = "," + new_str;
+        }
+    }
+    return new_str;
+}
+
+function getNum(str){
+    while(str.includes(" ")){
+        str = str.replace(" ", "");
+    }
+    var num = 0;
+    try{
+        num = parseInt(str);
+    }catch(err){
+        console.log("Formázási hiba: "+str);
+    }
+    return num;
+}
+
+function formatCountryName(str){
+    str = str.toLowerCase().trim();
+    while(str.includes("  ")){
+        str = str.replace("  ", " ");
+    }
+    var str_split = str.split(" ");
+    var new_str = "";
+    str_split.forEach((part)=>{
+        part.trim();
+        part = part.charAt(0).toUpperCase() + part.substring(1);
+        if(new_str === "")
+            new_str = part;
+        else
+            new_str += " " + part;
+    });
+    new_str.trim();
+    return new_str;
 }
 
 var webhook_schedule = new Schedule.scheduleJob(config.rule, sendWebhook)

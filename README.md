@@ -1,7 +1,13 @@
 # COVidis
 Discord Bot responding with Coronavirus Numbers and Information.
 # Config required
-The bot needs a config.json file with a DC token.
+```
+{
+    "token":<your token>,
+    "webhook": <webhook url>,
+    "rule": <daily data sending rule (node-schedule)>
+}
+```
 # ISC License (ISC)
 Copyright 2020 Bálint Berente
 
