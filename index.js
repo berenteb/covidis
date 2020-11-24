@@ -10,6 +10,7 @@ const { parse } = require('path');
 
 var old_hun_data;
 var current_hun_data;
+dataReset();
 
 // Create an instance of a Discord client
 const client = new Discord.Client();
@@ -39,6 +40,7 @@ client.on('message', message => {
         message.react('❤');
         getMask(message.channel);
     } else if (message.content === "!sendwebhook") sendWebhook();
+    else if(message.content === "!covid-reset") dataReset();
 });
 
 client.login(config.token);
@@ -148,16 +150,17 @@ async function getData(country) {
                 });
                 res.on('end', () => {
                     hun_data.fertozott += hun_data.gyogyult + hun_data.elhunyt;
-                    if(hun_data !== current_hun_data){
+                    if(hun_data.fertozott !== current_hun_data.fertozott){
                         old_hun_data = current_hun_data;
                         current_hun_data = hun_data;
                     }
-                    if (old_hun_data != undefined) {
+                    //console.log(`${JSON.stringify(hun_data)}\n${JSON.stringify(current_hun_data)}\n${JSON.stringify(old_hun_data)}`)
+                    if (old_hun_data.fertozott > 0) {
                         statistics.fertozott_new = ` (+${numberWithCommas(current_hun_data.fertozott - old_hun_data.fertozott)})`
                         statistics.elhunyt_new = ` (+${numberWithCommas(current_hun_data.elhunyt - old_hun_data.elhunyt)})`
                         statistics.gyogyult_new = ` (+${numberWithCommas(current_hun_data.gyogyult - old_hun_data.gyogyult)})`
                         var karanten_diff = current_hun_data.karanten - old_hun_data.karanten;
-                        statistics.karanten_new = ` (${(karanten_diff < 0 ? "-" : "+") + numberWithCommas(karanten_diff)})`
+                        statistics.karanten_new = ` (${(karanten_diff < 0 ? "" : "+") + numberWithCommas(karanten_diff)})`
                         statistics.mintavetel_new = ` (+${numberWithCommas(current_hun_data.mintavetel - old_hun_data.mintavetel)})`
                     }
                     if (result.imgUrl) attachment_status = "";
@@ -231,12 +234,30 @@ var sendWebhook = function () {
     })
 }
 
+function dataReset(){
+    old_hun_data = {
+        fertozott: 0,
+        elhunyt: 0,
+        gyogyult: 0,
+        karanten: 0,
+        mintavetel: 0
+    };
+
+    current_hun_data = {
+        fertozott: 0,
+        elhunyt: 0,
+        gyogyult: 0,
+        karanten: 0,
+        mintavetel: 0
+    };
+}
+
 function numberWithCommas(x) {
     var x_str = x.toString();
     var new_str = "";
     for(let i = 1; i <= x_str.length; i++){
         new_str = x_str.charAt(x_str.length - i) + new_str;
-        if(i % 3 === 0 && i != x_str.length){
+        if(i % 3 === 0 && i != x_str.length && x_str.charAt(x_str.length - i -1) != "-"){
             new_str = "," + new_str;
         }
     }
