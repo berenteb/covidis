@@ -1,5 +1,5 @@
 # COVidis
-Discord Bot responding with Coronavirus Numbers and Information.
+This Discord bot can respond with Coronavirus data of all countries. There is a more detailed datasheet for Hungary, with a map. A WebHook can be set up for this bot, and an automated WebHook message will be sent at the specified time in the config file.
 # Config required
 ```
 {
