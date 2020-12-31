@@ -1,13 +1,24 @@
 # COVidis
-This Discord bot can respond with Coronavirus data of all countries. There is a more detailed datasheet for Hungary, with a map. A WebHook can be set up for this bot, and an automated WebHook message will be sent at the specified time in the config file.
+Discord Bot responding with Coronavirus Numbers and Information.
+# Data Source
+* Hungary: [Atlo](http://atlo.team), [Map](http://koronavirus.gov.hu)
+* For other countries: [Coronavirus-Statistics/RapidAPI](https://rapidapi.com/KishCom/api/covid-19-coronavirus-statistics)
 # Config required
-```
+## config.json
+```json
 {
     "token":<your token>,
     "webhook": <webhook url>,
-    "rule": <daily data sending rule (node-schedule)>
+    "rule": <daily data sending rule (node-schedule)>,
+    "sheetID": <your Google Sheets ID>
 }
 ```
+## row_indexes.json
+Latest data for Hungary is returned in an array. This file contains the index for each data field.
+## credentials.json
+Google Auth credentials. It can be downloaded from the Google Cloud Console.
+## token.json
+Token file for the Sheets API. If it doesn't exist, you'll be asked to visit a URL, and paste the code from the redirect URL. Then the new token will be stored.
 # ISC License (ISC)
 Copyright 2020 Bálint Berente
 
