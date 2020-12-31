@@ -116,3 +116,5 @@ dist
 **config.json
 **config_live
 .DS_Store
+credentials.json
+token.json

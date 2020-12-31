@@ -1,0 +1,14 @@
+{
+    "cases": 1,
+    "new_cases": 2,
+    "deaths": 3,
+    "recovered": 4,
+    "tests": 5,
+    "test_ratio": 9,
+    "active": 11,
+    "new_tests": 15,
+    "new_deaths": 17,
+    "new_recovered": 18,
+    "machine": 20,
+    "new_machine": 23
+}
