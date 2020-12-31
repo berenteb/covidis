@@ -2,7 +2,7 @@
 Discord Bot responding with Coronavirus Numbers and Information.
 # Data Source
 * Hungary: [Atlo](http://atlo.team), [Map](http://koronavirus.gov.hu)
-*For other countries: [Coronavirus-Statistics/RapidAPI](https://rapidapi.com/KishCom/api/covid-19-coronavirus-statistics)
+* For other countries: [Coronavirus-Statistics/RapidAPI](https://rapidapi.com/KishCom/api/covid-19-coronavirus-statistics)
 # Config required
 ## config.json
 ```json
