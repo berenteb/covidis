@@ -1,21 +1,28 @@
 const fs = require('fs');
-const readline = require('readline');
-const {google} = require('googleapis');
+const { google } = require('googleapis');
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+const credentials = require('./credentials.json');
+const WebServer = require('./webserver');
+const sendNotification = require('./notification');
+const redirect_url = require('./config.json').redirect_url;
 const TOKEN_PATH = 'token.json';
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
  * given callback function.
- * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials, callback) {
-//   const {client_secret, client_id, redirect_uris} = credentials.installed;
-google.auth.GoogleAuth
-  const oAuth2Client = new google.auth.OAuth2(
-    credentials.client_id, credentials.client_secret, "http://localhost:9000");
-
+function authorize(callback) {
+  const { client_secret, client_id } = credentials.web;
+  google.auth.GoogleAuth
+  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_url);
+  oAuth2Client.on('tokens', (tokens) => {
+    oAuth2Client.setCredentials(tokens);
+    fs.writeFile(TOKEN_PATH, JSON.stringify(tokens), (err) => {
+      if (err) return console.error(err);
+      console.log('Token mentve: ', TOKEN_PATH);
+    });
+  });
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, (err, token) => {
     if (err) return getNewToken(oAuth2Client, callback);
@@ -35,24 +42,14 @@ function getNewToken(oAuth2Client, callback) {
     access_type: 'offline',
     scope: SCOPES,
   });
-  console.log('Bejelntkezés szükséges:', authUrl);
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-  rl.question('Kód: ', (code) => {
-    rl.close();
+  console.log('Bejelentkezés szükséges:', authUrl);
+  sendNotification("Hi! Be kellene jelentkezni a mellékelt URL-en!", 'Bejelentkezés szükséges',authUrl);
+  WebServer.waitForCode((code) => {
     oAuth2Client.getToken(code, (err, token) => {
       if (err) {
         console.error('Nem sikerült Access Tokent szerezni.', err);
         callback();
       }
-      oAuth2Client.setCredentials(token);
-      // Store the token to disk for later program executions
-      fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-        if (err) return console.error(err);
-        console.log('Token mentve: ', TOKEN_PATH);
-      });
       callback(oAuth2Client);
     });
   });

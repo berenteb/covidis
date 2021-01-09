@@ -1,9 +1,11 @@
 const config = require('./config.json');
-const credentials = require('./credentials.json');
+const sendNotification = require('./notification');
 const cheerio = require('cheerio');
 const https = require("https")
 const { google } = require('googleapis');
 const Auth = require("./auth");
+const fs = require('fs');
+var failCount = 0;
 function getMapPromise() {
     return new Promise((res) => {
         var host = "koronavirus.gov.hu"
@@ -31,20 +33,29 @@ function getMapPromise() {
 }
 function getDataPromise() {
     return new Promise((resolve, reject) => {
-        Auth.authorize(credentials.web, (auth) => {
+        Auth.authorize((auth)=>{
             const sheets = google.sheets({ version: 'v4', auth });
             sheets.spreadsheets.values.get({
                 spreadsheetId: config.sheetID,
                 range: 'koronahun!A300:Z',
             }, (err, res) => {
                 if (err){
-                    reject("API hiba: "+err);
-                }
-                const rows = res.data.values;
-                if (rows.length) {
-                    resolve(rows[rows.length - 1]);
-                } else {
-                    reject("Nem kapott adatot.")
+                    failCount++;
+                    if(failCount>1){
+                        sendNotification('Hi! Nem tudtam lekérni az adatokat a táblázatból. Hiba: '+err.message,'Beavatkozás szükséges')
+                        reject("API Hiba: "+err.message);
+                    }else{
+                        fs.rmSync('token.json');
+                        reject("Bejelentkezés szükséges");
+                    }
+                }else{
+                    failCount=0;
+                    const rows = res.data.values;
+                    if (rows.length) {
+                        resolve(rows[rows.length - 1]);
+                    } else {
+                        reject("Nem kapott adatot.")
+                    }
                 }
             });
         })

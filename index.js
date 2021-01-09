@@ -3,19 +3,19 @@ const Discord = require('discord.js');
 const unirest = require('unirest');
 const config = require('./config.json');
 const indexes = require('./row_indexes.json');
-const credentials = require('./credentials.json')
 const webhook = require("webhook-discord")
 const Schedule = require('node-schedule');
 const { getMapPromise, getDataPromise } = require("./hungary")
-const {authorize} = require('./auth')
+const sendNotification = require('./notification');
+const { authorize } = require('./auth')
 // Create an instance of a Discord client
 const client = new Discord.Client();
 
 client.on('ready', (event) => {
-    console.log('Készen áll!');
+    console.log('DiscordJS készen áll!');
 });
 
-client.on('error', (event)=>{
+client.on('error', (event) => {
     console.log(event);
     process.exit(-1);
 })
@@ -41,10 +41,11 @@ client.on('message', message => {
 });
 
 client.login(config.token);
-authorize(credentials.web,(auth)=>{
-    if(auth){
+authorize((auth) => {
+    if (auth) {
         console.log("Google Auth sikeres.")
-    }else{
+    } else {
+        sendNotification('Hi! A Google Auth nem sikerült!.', 'Beavatkozás szükséges')
         console.log("Google Auth sikertelen.")
         process.exit(-1);
     }
@@ -53,17 +54,21 @@ authorize(credentials.web,(auth)=>{
 //Countries other than World and US
 function sendMessage(country, channel) {
     if (country === "Hungary") {
-        getDataForHungary().then(data=>{
-            if(data.mapUrl){
+        getDataForHungary().then(data => {
+            if (data.mapUrl) {
                 var attachment = new Discord.MessageAttachment(data.mapUrl);
                 channel.send(data.msg, attachment);
-            }else{
-                data.msg+="\n\n🗺 A térképet nem tudtam megszerezni."
+            } else {
+                data.msg += "\n\n🗺 A térképet nem tudtam megszerezni."
                 channel.send(data.msg);
             }
-        }).catch(err=>{
+        }).catch(err => {
             console.log(err);
-            channel.send(err);
+            if(err === "Bejelentkezés szükséges"){
+                sendMessage("Hungary", channel);
+            }else{
+                channel.send("⚡️ Nem sikerült lekérnem az adatokat.");
+            }
         })
     } else {
         getData(country).then(repsonse => {
@@ -76,27 +81,27 @@ function sendMessage(country, channel) {
     }
 }
 
-function getDataForHungary(){
-    return new Promise((resolve,reject)=>{
+function getDataForHungary() {
+    return new Promise((resolve, reject) => {
         var result = {};
-        Promise.all([getDataPromise(),getMapPromise()]).then(data=>{
+        Promise.all([getDataPromise(), getMapPromise()]).then(data => {
             result.mapUrl = data[1];
             var statRaw = data[0];
             var stat = formatDataArray(statRaw);
-            if(!stat)reject("⚡️ Nem sikerült az adatokat lekérni!");
+            if (!stat) reject("⚡️ Nem sikerült az adatokat lekérni!");
             var msg = "🇭🇺 Magyarország jelenlegi koronavírus helyzete:\n\n"
-            msg+=`🦠 Összes eset: ${stat[indexes.cases]} (${stat[indexes.new_cases]})\n`;
-            msg+=`▶️ Ebből aktív: ${stat[indexes.active]}\n`;
-            msg+=`☠️ Halálesetek: ${stat[indexes.deaths]} (${stat[indexes.new_deaths]})\n`;
-            msg+=`💚 Meggyógyult: ${stat[indexes.recovered]} (${stat[indexes.new_recovered]})\n`;
-            msg+=`🏥 Lélegeztetőgépen: ${stat[indexes.machine]} (${stat[indexes.new_machine]})\n`;
-            msg+=`🧪 Mintavételek száma: ${stat[indexes.tests]} (${stat[indexes.new_tests]})\n`;
-            msg+=`🧮 Pozitív tesztek aránya: ${stat[indexes.test_ratio]}\n`;
+            msg += `🦠 Összes eset: ${stat[indexes.cases]} (${stat[indexes.new_cases]})\n`;
+            msg += `▶️ Ebből aktív: ${stat[indexes.active]}\n`;
+            msg += `☠️ Halálesetek: ${stat[indexes.deaths]} (${stat[indexes.new_deaths]})\n`;
+            msg += `💚 Meggyógyult: ${stat[indexes.recovered]} (${stat[indexes.new_recovered]})\n`;
+            msg += `🏥 Lélegeztetőgépen: ${stat[indexes.machine]} (${stat[indexes.new_machine]})\n`;
+            msg += `🧪 Mintavételek száma: ${stat[indexes.tests]} (${stat[indexes.new_tests]})\n`;
+            msg += `🧮 Pozitív tesztek aránya: ${stat[indexes.test_ratio]}\n`;
             result.msg = msg;
             resolve(result);
-        }).catch(err=>{
+        }).catch(err => {
             console.log(err);
-            reject("⚡️ Nem sikerült az adatokat lekérni!");
+            reject(err);
         })
     })
 }
@@ -120,7 +125,7 @@ function getData(country) {
         });
 
         req.end(function (res) {
-            if(res.error)reject("⚡️ Sajnos valamilyen hibába ütköztem.")
+            if (res.error) reject("⚡️ Sajnos valamilyen hibába ütköztem.")
             var body = JSON.parse(res.raw_body);
             if (body.message === "OK") {
                 cases = body.data.confirmed;
@@ -185,19 +190,19 @@ function formatCountryName(str) {
     return new_str;
 }
 
-function formatDataArray(dataArray){
-    if(Array.isArray(dataArray)){
-        for(let i = 0; i < dataArray.length; i++){
+function formatDataArray(dataArray) {
+    if (Array.isArray(dataArray)) {
+        for (let i = 0; i < dataArray.length; i++) {
             var data = dataArray[i];
             let isNum = /^(-{0,1}[0-9]+)$/.test(data);
-            if(isNum){
+            if (isNum) {
                 // let isNegative = /^(-{1,1}[0-9]+)$/.test(data);
                 var dataFormatted = /*`${isNegative?"":"+"}`+*/numberWithCommas(data);
                 dataArray[i] = dataFormatted;
             }
         }
         return dataArray;
-    }else
+    } else
         return false;
 }
 
