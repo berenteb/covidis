@@ -5,7 +5,6 @@ const https = require("https")
 const { google } = require('googleapis');
 const Auth = require("./auth");
 const fs = require('fs');
-var failCount = 0;
 function getMapPromise() {
     return new Promise((res) => {
         var host = "koronavirus.gov.hu"
@@ -40,16 +39,9 @@ function getDataPromise() {
                 range: 'koronahun!A300:Z',
             }, (err, res) => {
                 if (err){
-                    failCount++;
-                    if(failCount>1){
-                        sendNotification('Hi! Nem tudtam lekérni az adatokat a táblázatból. Hiba: '+err.message,'Beavatkozás szükséges')
-                        reject("API Hiba: "+err.message);
-                    }else{
-                        fs.rmSync('token.json');
-                        reject("Bejelentkezés szükséges");
-                    }
+                    fs.rmSync('token.json');
+                    reject("Bejelentkezés szükséges");
                 }else{
-                    failCount=0;
                     const rows = res.data.values;
                     if (rows.length) {
                         resolve(rows[rows.length - 1]);
