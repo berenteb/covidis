@@ -55,4 +55,12 @@ function getNewToken(oAuth2Client, callback) {
   });
 }
 
-module.exports.authorize = authorize
+function removeToken() {
+  fs.rmSync("token.json");
+  authorize();
+}
+
+module.exports = {
+  authorize: authorize,
+  removeToken: removeToken
+}

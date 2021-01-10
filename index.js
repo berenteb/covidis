@@ -7,7 +7,7 @@ const webhook = require("webhook-discord")
 const Schedule = require('node-schedule');
 const { getMapPromise, getDataPromise } = require("./hungary")
 const sendNotification = require('./notification');
-const { authorize } = require('./auth')
+const { authorize, removeToken } = require('./auth')
 // Create an instance of a Discord client
 const client = new Discord.Client();
 
@@ -38,6 +38,7 @@ client.on('message', message => {
         message.react('❤');
         message.channel.send("Hello!\nCOVidis bot vagyok\nOrszágokról küldök koronavírus információkat.\nHasználat:\n\t'!covid:<ország angol neve>'");
     } else if (message.content === "!sendwebhook") sendWebhook();
+    else if (message.content === "!rt") removeToken();
 });
 
 client.login(config.token);

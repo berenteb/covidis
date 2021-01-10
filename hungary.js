@@ -39,8 +39,9 @@ function getDataPromise() {
                 range: 'koronahun!A300:Z',
             }, (err, res) => {
                 if (err){
-                    fs.rmSync('token.json');
-                    reject("Bejelentkezés szükséges");
+                    // fs.rmSync('token.json');
+                    console.log(err);
+                    reject(err);
                 }else{
                     const rows = res.data.values;
                     if (rows.length) {
