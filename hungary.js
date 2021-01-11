@@ -40,8 +40,8 @@ function getDataPromise() {
             }, (err, res) => {
                 if (err){
                     // fs.rmSync('token.json');
-                    console.log(err);
-                    reject(err);
+                    console.log("Sheets API hiba");
+                    reject("Sheets API hiba");
                 }else{
                     const rows = res.data.values;
                     if (rows.length) {
