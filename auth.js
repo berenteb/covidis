@@ -43,8 +43,8 @@ function getNewToken(oAuth2Client, callback) {
         console.error('Nem sikerült Access Tokent szerezni.', err);
         callback();
       }
-      oAuth2Client.setCredentials(tokens);
-      fs.writeFile(TOKEN_PATH, JSON.stringify(tokens), (err) => {
+      oAuth2Client.setCredentials(token);
+      fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
         if (err) return console.error(err);
         console.log('Token mentve: ', TOKEN_PATH);
       });
