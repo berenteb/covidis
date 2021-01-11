@@ -16,13 +16,6 @@ function authorize(callback) {
   const { client_secret, client_id } = credentials.web;
   google.auth.GoogleAuth
   const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_url);
-  oAuth2Client.on('tokens', (tokens) => {
-    oAuth2Client.setCredentials(tokens);
-    fs.writeFile(TOKEN_PATH, JSON.stringify(tokens), (err) => {
-      if (err) return console.error(err);
-      console.log('Token mentve: ', TOKEN_PATH);
-    });
-  });
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, (err, token) => {
     if (err) return getNewToken(oAuth2Client, callback);
@@ -43,13 +36,18 @@ function getNewToken(oAuth2Client, callback) {
     scope: SCOPES,
   });
   console.log('Bejelentkezés szükséges:', authUrl);
-  sendNotification("Hi! Be kellene jelentkezni a mellékelt URL-en!", 'Bejelentkezés szükséges',authUrl);
+  sendNotification("Hi! Be kellene jelentkezni a mellékelt URL-en!", 'Bejelentkezés szükséges', authUrl);
   WebServer.waitForCode((code) => {
     oAuth2Client.getToken(code, (err, token) => {
       if (err) {
         console.error('Nem sikerült Access Tokent szerezni.', err);
         callback();
       }
+      oAuth2Client.setCredentials(tokens);
+      fs.writeFile(TOKEN_PATH, JSON.stringify(tokens), (err) => {
+        if (err) return console.error(err);
+        console.log('Token mentve: ', TOKEN_PATH);
+      });
       callback(oAuth2Client);
     });
   });
