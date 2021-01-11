@@ -39,6 +39,7 @@ function getNewToken(oAuth2Client, callback) {
   sendNotification("Hi! Be kellene jelentkezni a mellékelt URL-en!", 'Bejelentkezés szükséges', authUrl);
   WebServer.waitForCode((code) => {
     oAuth2Client.getToken(code, (err, token) => {
+      console.log(token)
       if (err) {
         console.error('Nem sikerült Access Tokent szerezni.', err);
         callback();
