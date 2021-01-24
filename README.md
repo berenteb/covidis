@@ -20,7 +20,7 @@ Google Auth credentials. It can be downloaded from the Google Cloud Console.
 ## token.json
 Token file for the Sheets API. If it doesn't exist, you'll be asked to visit a URL, and paste the code from the redirect URL. Then the new token will be stored.
 # ISC License (ISC)
-Copyright 2020 Bálint Berente
+Copyright 2021 Bálint Berente
 
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 
