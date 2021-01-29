@@ -97,7 +97,8 @@ function getDataForHungary() {
             msg += `💚 Meggyógyult: ${stat[indexes.recovered]} (${stat[indexes.new_recovered]})\n`;
             msg += `🏥 Lélegeztetőgépen: ${stat[indexes.machine]} (${stat[indexes.new_machine]})\n`;
             msg += `🧪 Mintavételek száma: ${stat[indexes.tests]} (${stat[indexes.new_tests]})\n`;
-            msg += `🧮 Pozitív tesztek aránya: ${stat[indexes.test_ratio]}\n`;
+            msg += `💉 Beoltottak száma: ${stat[indexes.vaccine]} (${stat[indexes.new_vaccine]})\n`;
+            msg += `🧮 Pozitív tesztek aránya (összesen): ${stat[indexes.test_ratio]}\n`;
             result.msg = msg;
             resolve(result);
         }).catch(err => {

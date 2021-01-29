@@ -36,7 +36,7 @@ function getDataPromise() {
             const sheets = google.sheets({ version: 'v4', auth });
             sheets.spreadsheets.values.get({
                 spreadsheetId: config.sheetID,
-                range: 'koronahun!A300:Z',
+                range: 'koronahun!A300:AL',
             }, (err, res) => {
                 if (err){
                     // fs.rmSync('token.json');

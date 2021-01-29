@@ -10,5 +10,7 @@
     "new_deaths": 17,
     "new_recovered": 18,
     "machine": 20,
-    "new_machine": 23
+    "new_machine": 23,
+    "vaccine":32,
+    "new_vaccine":33
 }
