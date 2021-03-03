@@ -1,5 +1,5 @@
 # COVidis
-[](https://img.shields.io/github/package-json/v/berenteb/covidis)
+![Version](https://img.shields.io/github/package-json/v/berenteb/covidis)
 Discord Bot responding with Coronavirus Numbers and Information.
 # Data Source
 * Hungary: [Atlo](http://atlo.team), [Map](http://koronavirus.gov.hu)
