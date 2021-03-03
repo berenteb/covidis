@@ -67,6 +67,8 @@ function sendMessage(country, channel) {
             console.log(err);
             if(err === "Bejelentkezés szükséges"){
                 sendMessage("Hungary", channel);
+            }else if(err === "Sheets API hiba"){
+                sendNotification("Hi! Törölni kellene a tokent és be kellene jelentkezni újra!", "Beavatkozás szükséges")
             }else{
                 channel.send("⚡️ Nem sikerült lekérnem az adatokat.");
             }
@@ -102,7 +104,7 @@ function getDataForHungary() {
             result.msg = msg;
             resolve(result);
         }).catch(err => {
-            console.log(err);
+            // console.log(err);
             reject(err);
         })
     })

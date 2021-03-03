@@ -20,11 +20,16 @@ function authorize(callback) {
     oAuth2Client.setCredentials(token);
     if(token.refresh_token){
       fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
-        if (err) return console.error(err);
-        console.log('Token mentve: ', TOKEN_PATH);
+        if (err){
+          console.error(err);
+          sendNotification("Sikertelen mentés! Nézd meg a terminálkimenetet!", "Token mentés");
+        }else{
+          sendNotification("Új token elmentve!", "Token mentés");
+          console.log('Token mentve: ', TOKEN_PATH);
+        }
       });
     }
-    sendNotification("Új tokent kaptam","Token");
+    // sendNotification("Új tokent kaptam","Token");
   })
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, (err, token) => {
