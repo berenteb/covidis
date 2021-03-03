@@ -119,3 +119,4 @@ dist
 credentials.json
 token.json
 https
+test.js

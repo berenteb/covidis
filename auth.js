@@ -55,9 +55,9 @@ function getNewToken(oAuth2Client, callback) {
       }
       if (err) {
         console.error('Nem sikerült Access Tokent szerezni.', err);
-        callback();
+        if(typeof callback == "function") callback();
       }
-      callback(oAuth2Client);
+      if(typeof callback == "function") callback(oAuth2Client);
     });
   });
 }
