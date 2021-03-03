@@ -56,10 +56,10 @@ function getNewToken(oAuth2Client, callback) {
     oAuth2Client.getToken(code, (err, token) => {
       if(!token.refresh_token){
         sendNotification("Nem kaptam Refresh Tokent!", "Refresh Token Hiba");
-        console.log("Refresh Token hiányzik!");
+        console.log("Refresh Token hiányzik!".red);
       }
       if (err) {
-        console.error('Nem sikerült Access Tokent szerezni.', err);
+        console.log('Nem sikerült Access Tokent szerezni.'.red);
         if(typeof callback == "function") callback();
       }
       if(typeof callback == "function") callback(oAuth2Client);

@@ -24,7 +24,7 @@ function getMapPromise() {
             });
         });
         req.on('error', error => {
-            console.log(host + " nem érhető el.");
+            console.log(host + " nem érhető el.".red);
             res()
         })
         req.end();

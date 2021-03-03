@@ -5,11 +5,15 @@ const config = require('./config.json');
 const indexes = require('./row_indexes.json');
 const webhook = require("webhook-discord")
 const Schedule = require('node-schedule');
+const colors = require("colors");
 const { getMapPromise, getDataPromise } = require("./hungary")
 const sendNotification = require('./notification');
 const { authorize, removeToken } = require('./auth')
 // Create an instance of a Discord client
 const client = new Discord.Client();
+
+var timeout;
+var retryCount = 0;
 
 client.on('ready', (event) => {
     console.log('DiscordJS készen áll!');
@@ -31,23 +35,23 @@ client.on('message', message => {
                 country = formatCountryName(country);
                 console.log(country + " keresése");
                 sendMessage(country, message.channel);
-                console.log("Válasz elküldve");
+                console.log("Válasz elküldve".green);
             }
         }
     } else if (message.content === "!covidis") {
         message.react('❤');
         message.channel.send("Hello!\nCOVidis bot vagyok\nOrszágokról küldök koronavírus információkat.\nHasználat:\n\t'!covid:<ország angol neve>'");
-    } else if (message.content === "!sendwebhook") sendWebhook();
+    } else if (message.content === "!sendwebhook") sendWebhook(message.channel);
     else if (message.content === "!rt") removeToken();
 });
 
 client.login(config.token);
 authorize((auth) => {
     if (auth) {
-        console.log("Google Auth sikeres.")
+        console.log("Google Auth sikeres.".green);
     } else {
-        sendNotification('Hi! A Google Auth nem sikerült!.', 'Beavatkozás szükséges')
-        console.log("Google Auth sikertelen.")
+        sendNotification('Hi! A Google Auth nem sikerült!.', 'Beavatkozás szükséges');
+        console.log("Google Auth sikertelen.".red);
         process.exit(-1);
     }
 })
@@ -62,23 +66,27 @@ function sendMessage(country, channel) {
             } else {
                 data.msg += "\n\n🗺 A térképet nem tudtam megszerezni."
                 channel.send(data.msg);
+                
+            }
+            if (data.outdated) {
+                channel.send("❗️ Figyelem! Ez nem a mai adat! A legfrissebb adatért nézz vissza később!")
             }
         }).catch(err => {
-            console.log(err);
-            if(err === "Bejelentkezés szükséges"){
+            console.log(err.red);
+            if (err === "Bejelentkezés szükséges") {
                 sendMessage("Hungary", channel);
-            }else if(err === "Sheets API hiba"){
+            } else if (err === "Sheets API hiba") {
                 sendNotification("Hi! Törölni kellene a tokent és be kellene jelentkezni újra!", "Beavatkozás szükséges")
-            }else{
+            } else {
                 channel.send("⚡️ Nem sikerült lekérnem az adatokat.");
             }
         })
     } else {
         getData(country).then(repsonse => {
-            console.log("Siker, elküldve!");
+            console.log("Siker, elküldve!".green);
             channel.send(repsonse);
         }).catch(err => {
-            console.log(err);
+            console.log(err.red);
             channel.send(err);
         })
     }
@@ -86,12 +94,23 @@ function sendMessage(country, channel) {
 
 function getDataForHungary() {
     return new Promise((resolve, reject) => {
-        var result = {};
+        var result = { outdated: false };
         Promise.all([getDataPromise(), getMapPromise()]).then(data => {
             result.mapUrl = data[1];
             var statRaw = data[0];
             var stat = formatDataArray(statRaw);
             if (!stat) reject("⚡️ Nem sikerült az adatokat lekérni!");
+            var dataDateSplit = stat[0].split("-");
+            var dataDate = {
+                year: dataDateSplit[0],
+                month: dataDateSplit[1],
+                day: dataDateSplit[2]
+            }
+            var currentDate = new Date(Date.now());
+            if (dataDate.year != currentDate.getFullYear() || dataDate.month != currentDate.getMonth()+1 || dataDate.day != currentDate.getDate()) {
+                console.log(`Az adat dátuma: ${dataDate.year} ${dataDate.month} ${dataDate.day}`)
+                result.outdated = true;
+            }
             var msg = "🇭🇺 Magyarország jelenlegi koronavírus helyzete:\n\n"
             msg += `🦠 Összes eset: ${stat[indexes.cases]} (${stat[indexes.new_cases]})\n`;
             msg += `▶️ Ebből aktív: ${stat[indexes.active]}\n`;
@@ -104,7 +123,6 @@ function getDataForHungary() {
             result.msg = msg;
             resolve(result);
         }).catch(err => {
-            // console.log(err);
             reject(err);
         })
     })
@@ -144,7 +162,7 @@ function getData(country) {
     })
 }
 
-var sendWebhook = function () {
+var sendWebhook = function (channel) {
     console.log("WebHook küldése");
     getDataForHungary().then(data => {
         const Hook = new webhook.Webhook(config.webhook);
@@ -155,11 +173,26 @@ var sendWebhook = function () {
             .setTitle(`Koronavírus statisztikák ${d.getFullYear()}.${d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1}.${d.getDate() < 10 ? "0" + (d.getDate()) : d.getDate()}.`)
             .setDescription(data.msg)
             .setImage(data.mapUrl);
-
-        Hook.send(msg);
-        console.log("WebHook sikeres!")
+        if (data.outdated === true) {
+            console.log("Régi adat érkezett, újrapróbálás fél óra múlva.".red);
+            if(channel)channel.send("Régi adat érkezett, újrapróbálás fél óra múlva.");
+            // if(timeout) timeout.clearTimeout();
+            if(retryCount < 5){
+                timeout = setTimeout(sendWebhook, 10000);
+                retryCount++;
+            }else{
+                console.log("Maximum újrapróbálás elérve!".red);
+                retryCount = 0;
+                sendNotification("Maximum újrapróbálás elérve a WebHook-nál","Beavatkozás szükséges");
+            }
+        } else {
+            retryCount = 0;
+            timeout = undefined;
+            console.log("WebHook sikeres!".green)
+            Hook.send(msg);
+        }
     }).catch(err => {
-        console.log(err);
+        console.log(err.red);
     })
 }
 
