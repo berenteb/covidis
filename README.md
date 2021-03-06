@@ -8,16 +8,16 @@ Discord Bot responding with Coronavirus Numbers and Information.
 ## config.json
 ```json
 {
-    "token":<Discord token>,
-    "webhook": <WebHook URL>,
-    "rule": <automated WebHook cron rule>,
-    "rapid_api_key": <...>,
-    "sheetID": <Google Sheet ID>,
-    "pushover_token": <...>,
-    "pushover_user": <...>,
-    "redirect_url": <Used for Google Authentication>,
-    "webserver_port": <Used for Google Authentication>,
-    "redirect_url_with_port": <whether rhe redirect URL should contain the webserver port. Good for testing. (optional)>
+    "token":"<Discord token>",
+    "webhook": "<WebHook URL>",
+    "rule": "<automated WebHook cron rule>",
+    "rapid_api_key": "<...>",
+    "sheetID": "<Google Sheet ID>",
+    "pushover_token": "<...>",
+    "pushover_user": "<...>",
+    "redirect_url": "<Used for Google Authentication>",
+    "webserver_port": "<Used for Google Authentication>",
+    "redirect_url_with_port": "<whether rhe redirect URL should contain the webserver port. Good for testing. (optional)>"
 }
 ```
 ## row_indexes.json
