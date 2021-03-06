@@ -5,7 +5,10 @@ const credentials = require('./credentials.json');
 const WebServer = require('./webserver');
 const sendNotification = require('./notification');
 const config = require('./config.json');
-const redirect_url = config.redirect_url + ":" + config.webserver_port;
+const redirect_url = config.redirect_url;
+if(config.redirect_url_with_port){
+  redirect_url += ":"+config.webserver_port;
+}
 const TOKEN_PATH = 'token.json';
 
 /**

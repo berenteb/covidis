@@ -16,7 +16,8 @@ Discord Bot responding with Coronavirus Numbers and Information.
     "pushover_token": <...>,
     "pushover_user": <...>,
     "redirect_url": <Used for Google Authentication>,
-    "webserver_port": <Used for Google Authentication>
+    "webserver_port": <Used for Google Authentication>,
+    "redirect_url_with_port": <whether rhe redirect URL should contain the webserver port. Good for testing. (optional)>
 }
 ```
 ## row_indexes.json
