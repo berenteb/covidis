@@ -4,7 +4,8 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 const credentials = require('./credentials.json');
 const WebServer = require('./webserver');
 const sendNotification = require('./notification');
-const redirect_url = require('./config.json').redirect_url;
+const config = require('./config.json');
+const redirect_url = config.redirect_url + ":" + config.webserver_port;
 const TOKEN_PATH = 'token.json';
 
 /**

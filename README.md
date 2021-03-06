@@ -8,10 +8,15 @@ Discord Bot responding with Coronavirus Numbers and Information.
 ## config.json
 ```json
 {
-    "token":"<your token>",
-    "webhook": "<webhook url>",
-    "rule": "<daily data sending rule (node-schedule)>",
-    "sheetID": "<your Google Sheets ID>"
+    "token":<Discord token>,
+    "webhook": <WebHook URL>,
+    "rule": <automated WebHook cron rule>,
+    "rapid_api_key": <...>,
+    "sheetID": <Google Sheet ID>,
+    "pushover_token": <...>,
+    "pushover_user": <...>,
+    "redirect_url": <Used for Google Authentication>,
+    "webserver_port": <Used for Google Authentication>
 }
 ```
 ## row_indexes.json

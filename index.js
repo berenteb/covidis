@@ -12,7 +12,6 @@ const { authorize, removeToken } = require('./auth')
 // Create an instance of a Discord client
 const client = new Discord.Client();
 
-var timeout;
 var retryCount = 0;
 
 client.on('ready', (event) => {
@@ -172,14 +171,18 @@ var sendWebhook = function (channel) {
             .setColor("#7589DA")
             .setTitle(`Koronavírus statisztikák ${d.getFullYear()}.${d.getMonth() + 1 < 10 ? "0" + (d.getMonth() + 1) : d.getMonth() + 1}.${d.getDate() < 10 ? "0" + (d.getDate()) : d.getDate()}.`)
             .setDescription(data.msg)
-            .setImage(data.mapUrl);
+            .setImage(data.mapUrl || '');
         if (data.outdated === true) {
             console.log("Régi adat érkezett, újrapróbálás fél óra múlva.".red);
-            if(channel)channel.send("Régi adat érkezett, újrapróbálás fél óra múlva.");
-            // if(timeout) timeout.clearTimeout();
+            try{
+                channel.send("Régi adat érkezett, újrapróbálás fél óra múlva.");
+            }catch(err){
+                console.log("Hiba küldése a csatornára nem lehetséges.");
+            }
             if(retryCount < 5){
-                timeout = setTimeout(sendWebhook, 10000);
+                setTimeout(sendWebhook, 1800000);
                 retryCount++;
+                console.log("Újrapróbálás: "+retryCount);
             }else{
                 console.log("Maximum újrapróbálás elérve!".red);
                 retryCount = 0;
@@ -187,7 +190,6 @@ var sendWebhook = function (channel) {
             }
         } else {
             retryCount = 0;
-            timeout = undefined;
             console.log("WebHook sikeres!".green)
             Hook.send(msg);
         }
