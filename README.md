@@ -25,4 +25,4 @@ Latest data for Hungary is returned in an array. This file contains the index fo
 ## credentials.json
 Google Auth credentials. It can be downloaded from the Google Cloud Console.
 ## token.json
-Token file for the Sheets API. If it doesn't exist, you'll be asked to visit a URL, and paste the code from the redirect URL. Then the new token will be stored.
+Token file for the Sheets API. If it doesn't exist, you'll be asked to visit a URL and authenticate with your Google account.
